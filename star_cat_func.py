@@ -32,6 +32,25 @@ def get_star_centroids(binary_img, min_area=3, max_area=200):
     return centroids_array
 
 
+def distort_image(sim_img, sim_img_xy_el_az, t, ori_img_center=[0, 0]):
+
+    perfect_center = sim_img.shape[0] // 2
+    dist_lin = np.abs(np.sqrt((sim_img_xy_el_az[:, 0] - perfect_center)**2
+                      + (sim_img_xy_el_az[:, 1] - perfect_center)**2))
+    dist_cos = np.cos(np.deg2rad(sim_img_xy_el_az[:, 2])) * perfect_center
+
+    dist_mix = dist_lin * t + dist_cos * (1 - t)
+
+    new_x = (ori_img_center[0]
+             - dist_mix * np.cos(np.deg2rad(90 - sim_img_xy_el_az[:, 3])))
+    new_y = (ori_img_center[1]
+             - dist_mix * np.sin(np.deg2rad(90 - sim_img_xy_el_az[:, 3])))
+
+    new_xy = np.concatenate((new_x[:, None], new_y[:, None]), axis=1)
+
+    return new_xy
+
+
 def stars_to_polar_binary(elev,
                           azim,
                           img_size=4000,
